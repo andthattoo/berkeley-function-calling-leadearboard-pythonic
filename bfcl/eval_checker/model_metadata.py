@@ -1,6 +1,12 @@
 from bfcl.model_handler.handler_map import local_inference_handler_map
 
 MODEL_METADATA_MAPPING = {
+    "driaforall/dria-function-call-3b-priv": [
+        "Dria-FunctionCall (Prompt)",  # Name to show in leaderboard
+        "https://huggingface.co/driaforall/dria-function-call-3b-priv",  # Model URL
+        "Dria",
+        "Apache 2.0",  # or whatever license your model uses
+    ],
     "gorilla-openfunctions-v2": [
         "Gorilla-OpenFunctions-v2 (FC)",
         "https://gorilla.cs.berkeley.edu/blogs/7_open_functions_v2.html",
