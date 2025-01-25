@@ -6,11 +6,48 @@ import json
 import inspect
 
 
+def extract_xml_tags(xml_string, tag_name):
+    pattern = f'<{tag_name}>(.*?)</{tag_name}>'
+    matches = re.findall(pattern, xml_string, re.DOTALL)
+    return matches
+
+
 class DriaHandler(OSSHandler):
     def __init__(self, model_name, temperature) -> None:
         super().__init__(model_name, temperature)
         self.stop_token_ids = [151643, 151644, 151645]
         self.skip_special_tokens = True
+
+    @staticmethod
+    def parse_code_blocks(text):
+        # Split into lines and clean up
+        lines = text.split('\n')
+        code_lines = []
+        in_code_block = False
+
+        for line in lines:
+            # Handle first code block opening
+            if line.startswith('```python') and not in_code_block:
+                in_code_block = True
+                code_lines.append(line)
+            # Handle subsequent code blocks
+            elif line.startswith('```'):
+                # Extract the actual code, removing the backticks
+                code = line.lstrip('`')
+                code_lines.append(code)
+            # Handle regular lines
+            else:
+                code_lines.append(line)
+
+        # Join lines and ensure proper formatting
+        result = '\n'.join(code_lines)
+
+        # If the result doesn't end with ```, add it
+        if not result.strip().endswith('```'):
+            result = result.rstrip() + '\n```'
+
+        return result
+
     @staticmethod
     def _convert_json_to_python_schema(function: dict) -> str:
         """
@@ -129,6 +166,19 @@ class DriaHandler(OSSHandler):
     @override
     def decode_ast(self, result, language="Python"):
         try:
+            # result = self.parse_code_blocks(result)
+            # block = re.search(r'```python\s*(.*?)\s*```', result, re.DOTALL)
+            # if not block: return []
+            # code = block.group(1)
+
+            # try:
+            #    result = extract_xml_tags(result, "answer")[0]
+            # except:
+            #    return []#result.split("<answer>")[0]
+
+            # print("**** heyyy ", result)
+            # block = re.search(r'```python\s*(.*?)\s*```', result, re.DOTALL)
+
             calls = re.findall(r'([\w\.]+)\((.*?)\)', result)
             results = []
             for func, args in calls:
@@ -178,4 +228,3 @@ class DriaHandler(OSSHandler):
                 execution_list.append(f"{func_name}({args_str})")
 
         return execution_list
-
